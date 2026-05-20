@@ -1,0 +1,95 @@
+// seed.ts — Corre una sola vez para meter propiedades de prueba
+// Uso: npx ts-node seed.ts
+import { db } from './db';
+import { properties } from './schema';
+
+async function seed() {
+  console.log('Sembrando propiedades...');
+
+  await db.insert(properties).values([
+    {
+      code: 'EGT-MRM-01',
+      name: 'Flat Miramar',
+      location: 'San Bartolo, Lima, Perú',
+      sublocation: 'Condominio Miramar · frente al mar',
+      descripcion: 'Departamento de 3 habitaciones con vista al Pacífico, acabados de primera y área común con piscina. Inversión respaldada por fideicomiso bancario.',
+      totalInversion: 206648,
+      precioEgoa: 25831,
+      habs: 3,
+      banos: 2,
+      m2: 67.22,
+      totalTokens: 8,
+      tokenesVendidos: 3,
+      fechaAlquiler: '01/08/2026',
+      hueA: 195,
+      hueB: 215,
+      badge: 'Nuevo',
+      status: 'disponible',
+    },
+    {
+      code: 'EGT-MSF-02',
+      name: 'Casa San Felipe',
+      location: 'Miraflores, Lima, Perú',
+      sublocation: 'A 3 cuadras del Malecón',
+      descripcion: 'Departamento moderno en el corazón de Miraflores. Ideal para alquiler de corta y larga estancia.',
+      totalInversion: 320000,
+      precioEgoa: 40000,
+      habs: 2,
+      banos: 2,
+      m2: 75.0,
+      totalTokens: 8,
+      tokenesVendidos: 6,
+      rentabilidadAnual: 9.4,
+      fechaAlquiler: '15/09/2026',
+      hueA: 210,
+      hueB: 230,
+      badge: 'Match 92%',
+      status: 'disponible',
+    },
+    {
+      code: 'EGT-BCO-03',
+      name: 'Loft Barranco',
+      location: 'Barranco, Lima, Perú',
+      sublocation: 'Zona bohemia · vista al mar',
+      descripcion: 'Loft con diseño de arquitecto en el distrito más artístico de Lima. Alta demanda turística garantiza ocupación constante.',
+      totalInversion: 180000,
+      precioEgoa: 22500,
+      habs: 1,
+      banos: 1,
+      m2: 48.5,
+      totalTokens: 8,
+      tokenesVendidos: 8,
+      rentabilidadAnual: 11.2,
+      distribuido: 8400,
+      fechaAlquiler: '01/03/2026',
+      hueA: 35,
+      hueB: 55,
+      badge: 'Sold out',
+      status: 'agotado',
+    },
+    {
+      code: 'EGT-ASI-04',
+      name: 'Suite Asia',
+      location: 'Asia, Lima, Perú',
+      sublocation: 'Club Asia · primera fila de playa',
+      descripcion: 'Suite exclusiva dentro del Club Asia. Alta rentabilidad por temporada de verano y eventos.',
+      totalInversion: 410000,
+      precioEgoa: 51250,
+      habs: 4,
+      banos: 3,
+      m2: 120.0,
+      totalTokens: 8,
+      tokenesVendidos: 1,
+      fechaAlquiler: '01/12/2026',
+      hueA: 175,
+      hueB: 200,
+      badge: 'Próximamente',
+      status: 'proximamente',
+    },
+  ]).onConflictDoNothing();
+
+  console.log('✅ Listo — 4 propiedades insertadas.');
+  process.exit(0);
+}
+
+seed().catch(e => { console.error(e); process.exit(1); });
