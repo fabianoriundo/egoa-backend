@@ -1,51 +1,38 @@
 // api-backend/schema.ts
-import { pgTable, serial, text, timestamp, integer, real } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, integer, real, boolean } from 'drizzle-orm/pg-core';  // ← agrega boolean
 
 export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  fullName: text('full_name').notNull(),
-  email: text('email').unique().notNull(),
-  password: text('password').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
+  // ... igual que antes
 });
 
 export const properties = pgTable('properties', {
   id: serial('id').primaryKey(),
-
-  // Identidad
-  code: text('code').notNull(),           // 'EGT-MRM-01'
-  name: text('name').notNull(),           // 'Flat Miramar'
-  location: text('location').notNull(),   // 'San Bartolo, Lima, Perú'
-  sublocation: text('sublocation'),       // 'Condominio Miramar · frente al mar'
+  code: text('code').notNull(),
+  name: text('name').notNull(),
+  location: text('location').notNull(),
+  sublocation: text('sublocation'),
   descripcion: text('descripcion'),
-
-  // Precios
-  totalInversion: integer('total_inversion').notNull(),  // precio total
-  precioEgoa: integer('precio_egoa').notNull(),          // precio de 1/8
-
-  // Características
+  totalInversion: integer('total_inversion').notNull(),
+  precioEgoa: integer('precio_egoa').notNull(),
   habs: integer('habs').notNull(),
   banos: integer('banos').notNull(),
   m2: real('m2').notNull(),
-
-  // Tokens
   totalTokens: integer('total_tokens').notNull().default(8),
   tokenesVendidos: integer('tokenes_vendidos').notNull().default(0),
-
-  // Rentabilidad (null = restringido)
   rentabilidadAnual: real('rentabilidad_anual'),
   distribuido: integer('distribuido'),
-
-  // Fechas
-  fechaAlquiler: text('fecha_alquiler').notNull(),   // 'DD/MM/YYYY'
-
-  // Visual
+  fechaAlquiler: text('fecha_alquiler').notNull(),
   hueA: integer('hue_a'),
   hueB: integer('hue_b'),
-  badge: text('badge'),   // 'Nuevo' | 'Sold out' | 'Match 92%' | null
-
-  // Estado
-  status: text('status').notNull().default('disponible'), // 'disponible' | 'agotado' | 'proximamente'
-
+  badge: text('badge'),
+  status: text('status').notNull().default('disponible'),
   createdAt: timestamp('created_at').defaultNow(),
+
+  // ← estos son los que faltaban:
+  tipo: text('tipo').default('playa'),
+  categoria: text('categoria').default('vacacional'),
+  estilo: text('estilo').default('moderno'),
+  modelo: text('modelo'),
+  financiamiento: boolean('financiamiento').default(false),
+  petFriendly: boolean('pet_friendly').default(false),
 });
