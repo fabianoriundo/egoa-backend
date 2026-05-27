@@ -2,7 +2,11 @@
 import { pgTable, serial, text, timestamp, integer, real, boolean } from 'drizzle-orm/pg-core';  // ← agrega boolean
 
 export const users = pgTable('users', {
-  // ... igual que antes
+  id: serial('id').primaryKey(),
+  fullName: text('full_name').notNull(),
+  email: text('email').unique().notNull(),
+  password: text('password').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
 export const properties = pgTable('properties', {
