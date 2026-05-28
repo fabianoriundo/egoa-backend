@@ -1,10 +1,11 @@
+// back/api/admission.ts
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
 import nodemailer from 'nodemailer';
 
 const ADMIN_EMAIL = 'operaciones@egoa.app';
-const YOUR_EMAIL = 'ofabianmisael@gmail.com'; // ← corregido (misael)
-const LOGO_URL = 'https://i.imgur.com/tu-logo.png'; // ← URL real de tu logo
+const YOUR_EMAIL = 'ofabianmisael@gmail.com';
+const LOGO_URL = 'https://i.imgur.com/tu-logo.png'; // ← CÁMBIALA
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,7 +16,7 @@ export default async function handler(req: any, res: any) {
   const data = req.body;
 
   try {
-    // ── 1. Guardar en base de datos (INSERT completo) ─────────────────────────
+    // ── INSERT completo (todas las columnas) ─────────────────────────────────
     await db.execute(sql`
       INSERT INTO admissions (
         email, nombre, fecha_nacimiento, dni, nacionalidad, direccion, ciudad, celular,
@@ -35,85 +36,45 @@ export default async function handler(req: any, res: any) {
         lugar_fecha, nombre_solicitante, acepta_declaracion,
         status
       ) VALUES (
-        ${data.email ?? null},
-        ${data.nombre ?? null},
-        ${data.fechaNacimiento ?? null},
-        ${data.dni ?? null},
-        ${data.nacionalidad ?? null},
-        ${data.direccion ?? null},
-        ${data.ciudad ?? null},
-        ${data.celular ?? null},
-        ${data.estadoCivil ?? null},
-        ${data.sociedadGanancias ?? null},
-        ${data.partidaRegistral ?? null},
-        ${data.conyugeNombre ?? null},
-        ${data.conyugeFecha ?? null},
-        ${data.conyugeDni ?? null},
-        ${data.conyugeNacionalidad ?? null},
-        ${data.ocupacion ?? null},
-        ${data.empresa ?? null},
-        ${data.cargo ?? null},
-        ${data.rubro ?? null},
-        ${data.antiguedad ?? null},
-        ${data.otraFuente ?? null},
-        ${data.otraFuenteDetalle ?? null},
-        ${data.rangoIngresos ?? null},
-        ${data.patrimonioLiquido ?? null},
-        ${data.formaInversion ?? null},
-        ${data.formaInversionOtro ?? null},
-        ${data.esPropietario ?? null},
-        ${Array.isArray(data.tiposPropiedades) ? data.tiposPropiedades.join(', ') : null},
-        ${data.tieneSegundaPropiedad ?? null},
-        ${data.retoPrincipal ?? null},
-        ${Array.isArray(data.tipoInteres) ? data.tipoInteres.join(', ') : null},
-        ${data.tipoInteresOtro ?? null},
-        ${data.frecuenciaUso ?? null},
-        ${Array.isArray(data.prioridadInversion) ? data.prioridadInversion.join(', ') : null},
-        ${data.prioridadOtro ?? null},
-        ${data.rangoInversionEgoa ?? null},
-        ${data.horizonteTiempo ?? null},
-        ${data.origenFondos ?? null},
-        ${data.origenFondosOtro ?? null},
-        ${data.declaraOrigenLicito ?? null},
-        ${data.formaPago ?? null},
-        ${data.requiereFinanciamiento ?? null},
-        ${data.fuenteFinanciamiento ?? null},
-        ${data.fuenteFinanciamientoOtro ?? null},
-        ${data.tieneGarantia ?? null},
-        ${data.tipoInmuebleGarantia ?? null},
-        ${data.ciudadGarantia ?? null},
-        ${data.valorGarantiaUSD ?? null},
-        ${data.valorGarantiaSoles ?? null},
-        ${data.situacionRegistral ?? null},
-        ${data.situacionRegistralDetalle ?? null},
-        ${data.encajeEfectivoUSD ?? null},
-        ${data.encajeEfectivoSoles ?? null},
-        ${data.porcentajeEncaje ?? null},
-        ${data.esPEP ?? null},
-        ${data.pepDetalle ?? null},
-        ${data.comoConocioEgoa ?? null},
-        ${data.lugarFecha ?? null},
-        ${data.nombreSolicitante ?? null},
-        ${data.aceptaDeclaracion ?? null},
+        ${data.email ?? null}, ${data.nombre ?? null}, ${data.fechaNacimiento ?? null},
+        ${data.dni ?? null}, ${data.nacionalidad ?? null}, ${data.direccion ?? null},
+        ${data.ciudad ?? null}, ${data.celular ?? null}, ${data.estadoCivil ?? null},
+        ${data.sociedadGanancias ?? null}, ${data.partidaRegistral ?? null},
+        ${data.conyugeNombre ?? null}, ${data.conyugeFecha ?? null}, ${data.conyugeDni ?? null},
+        ${data.conyugeNacionalidad ?? null}, ${data.ocupacion ?? null}, ${data.empresa ?? null},
+        ${data.cargo ?? null}, ${data.rubro ?? null}, ${data.antiguedad ?? null},
+        ${data.otraFuente ?? null}, ${data.otraFuenteDetalle ?? null},
+        ${data.rangoIngresos ?? null}, ${data.patrimonioLiquido ?? null},
+        ${data.formaInversion ?? null}, ${data.formaInversionOtro ?? null},
+        ${data.esPropietario ?? null}, ${Array.isArray(data.tiposPropiedades) ? data.tiposPropiedades.join(', ') : null},
+        ${data.tieneSegundaPropiedad ?? null}, ${data.retoPrincipal ?? null},
+        ${Array.isArray(data.tipoInteres) ? data.tipoInteres.join(', ') : null}, ${data.tipoInteresOtro ?? null},
+        ${data.frecuenciaUso ?? null}, ${Array.isArray(data.prioridadInversion) ? data.prioridadInversion.join(', ') : null},
+        ${data.prioridadOtro ?? null}, ${data.rangoInversionEgoa ?? null}, ${data.horizonteTiempo ?? null},
+        ${data.origenFondos ?? null}, ${data.origenFondosOtro ?? null}, ${data.declaraOrigenLicito ?? null},
+        ${data.formaPago ?? null}, ${data.requiereFinanciamiento ?? null}, ${data.fuenteFinanciamiento ?? null},
+        ${data.fuenteFinanciamientoOtro ?? null}, ${data.tieneGarantia ?? null}, ${data.tipoInmuebleGarantia ?? null},
+        ${data.ciudadGarantia ?? null}, ${data.valorGarantiaUSD ?? null}, ${data.valorGarantiaSoles ?? null},
+        ${data.situacionRegistral ?? null}, ${data.situacionRegistralDetalle ?? null},
+        ${data.encajeEfectivoUSD ?? null}, ${data.encajeEfectivoSoles ?? null}, ${data.porcentajeEncaje ?? null},
+        ${data.esPEP ?? null}, ${data.pepDetalle ?? null}, ${data.comoConocioEgoa ?? null},
+        ${data.lugarFecha ?? null}, ${data.nombreSolicitante ?? null}, ${data.aceptaDeclaracion ?? null},
         'pendiente'
       )
     `);
 
-    // ── 2. Configurar transporter usando las variables reales (SMTP_* sin S) ──
+    // ── Configurar transporter ─────────────────────────────────────────────
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || '587'),
       secure: process.env.SMTP_PORT === '465',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
 
     const nombre = data.nombre || data.nombreSolicitante || 'Inversor';
     const userEmail = data.email;
 
-    // ── 3. Correo al administrador (y BCC a ti) ──────────────────────────────
+    // ── Correo al admin + BCC ──────────────────────────────────────────────
     const adminHtml = buildAdminEmail(data, nombre);
     await transporter.sendMail({
       from: `"EGOA App" <${process.env.SMTP_USER}>`,
@@ -123,7 +84,7 @@ export default async function handler(req: any, res: any) {
       html: adminHtml,
     });
 
-    // ── 4. Correo de confirmación al usuario ─────────────────────────────────
+    // ── Correo de confirmación al usuario ──────────────────────────────────
     if (userEmail && userEmail.includes('@')) {
       const userHtml = buildUserEmail(nombre);
       await transporter.sendMail({
@@ -141,28 +102,34 @@ export default async function handler(req: any, res: any) {
   }
 }
 
-// ---------- CORREO ADMIN (todos los datos, diseño profesional) ----------
-function buildAdminEmail(data: any, nombre: string): string {
-  const field = (label: string, value: any, highlight = false) => {
-    if (!value || value === '') return '';
-    const displayValue = Array.isArray(value) ? value.join(', ') : value;
-    return `<tr>
-      <td style="padding:10px 14px; background:#fff; border-bottom:1px solid #eef2f6; font-size:13px; color:#4b5563; width:35%">${escapeHtml(label)}</td>
-      <td style="padding:10px 14px; background:#fff; border-bottom:1px solid #eef2f6; font-size:13px; font-weight:${highlight ? '700' : '500'}; color:${highlight ? '#1e40af' : '#111827'}">${escapeHtml(displayValue)}</td>
-    </tr>`;
-  };
-
-  const section = (title: string, rows: string) => `
-    <div style="margin-top:28px; margin-bottom:12px;">
-      <div style="display:inline-block; background:#1e40af; width:4px; height:18px; border-radius:2px; margin-right:10px; vertical-align:middle;"></div>
-      <h3 style="display:inline-block; font-size:15px; font-weight:700; color:#1f2937; margin:0;">${title}</h3>
+// ── Funciones auxiliares para el correo ──────────────────────────────────────
+function field(label: string, value: any): string {
+  if (!value || value === '') return '';
+  const displayValue = Array.isArray(value) ? value.join(', ') : value;
+  return `
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eef2f6;">
+      <div style="font-weight: 600; color: #1f2937; width: 40%; font-size: 13px;">${escapeHtml(label)}</div>
+      <div style="color: #4b5563; width: 55%; font-size: 13px; word-break: break-word;">${escapeHtml(displayValue)}</div>
     </div>
-    <table style="width:100%; border-collapse:collapse; border-radius:16px; overflow:hidden; background:#fafbfc;">${rows}</td>
   `;
+}
 
-  // Construir filas (similar a la versión anterior pero completa)
+function section(title: string, content: string): string {
+  return `
+    <div style="margin-bottom: 28px;">
+      <div style="display: flex; align-items: center; margin-bottom: 12px;">
+        <div style="background: #1e40af; width: 4px; height: 18px; border-radius: 2px; margin-right: 10px;"></div>
+        <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">${title}</h3>
+      </div>
+      <div style="background: #f9fafb; border-radius: 12px; padding: 8px 16px;">${content}</div>
+    </div>
+  `;
+}
+
+function buildAdminEmail(data: any, nombre: string): string {
+  // Datos personales
   let personalRows = `
-    ${field('Nombre completo', data.nombre, true)}
+    ${field('Nombre completo', data.nombre)}
     ${field('Fecha de nacimiento', data.fechaNacimiento)}
     ${field('DNI / Pasaporte', data.dni)}
     ${field('Nacionalidad', data.nacionalidad)}
@@ -175,9 +142,9 @@ function buildAdminEmail(data: any, nombre: string): string {
   let conyugeRows = '';
   if (data.estadoCivil === 'casado') {
     conyugeRows = section('👫 Datos del cónyuge', `
-      ${field('Nombre cónyuge', data.conyugeNombre)}
+      ${field('Nombre', data.conyugeNombre)}
       ${field('Fecha nacimiento', data.conyugeFecha)}
-      ${field('DNI cónyuge', data.conyugeDni)}
+      ${field('DNI', data.conyugeDni)}
       ${field('Nacionalidad', data.conyugeNacionalidad)}
       ${field('Sociedad de ganancias', data.sociedadGanancias)}
       ${field('Partida registral', data.partidaRegistral)}
@@ -185,7 +152,7 @@ function buildAdminEmail(data: any, nombre: string): string {
   }
 
   let profesionalRows = `
-    ${field('Ocupación', data.ocupacion, true)}
+    ${field('Ocupación', data.ocupacion)}
     ${field('Empresa', data.empresa)}
     ${field('Cargo', data.cargo)}
     ${field('Rubro', data.rubro)}
@@ -194,8 +161,8 @@ function buildAdminEmail(data: any, nombre: string): string {
   `;
 
   let economicoRows = `
-    ${field('Ingresos mensuales', data.rangoIngresos, true)}
-    ${field('Patrimonio líquido', data.patrimonioLiquido, true)}
+    ${field('Ingresos mensuales', data.rangoIngresos)}
+    ${field('Patrimonio líquido', data.patrimonioLiquido)}
     ${field('Forma de inversión', data.formaInversion)}
     ${data.formaInversion === 'otro' ? field('Especificar', data.formaInversionOtro) : ''}
     ${field('Propietario de inmueble', data.esPropietario === 'si' ? 'Sí' : 'No')}
@@ -212,18 +179,18 @@ function buildAdminEmail(data: any, nombre: string): string {
   `;
 
   let inversionRows = `
-    ${field('Rango a invertir', data.rangoInversionEgoa, true)}
-    ${field('Horizonte de tiempo', data.horizonteTiempo, true)}
+    ${field('Rango a invertir', data.rangoInversionEgoa)}
+    ${field('Horizonte de tiempo', data.horizonteTiempo)}
     ${field('Origen de fondos', data.origenFondos)}
     ${data.origenFondos === 'otro' ? field('Otro origen', data.origenFondosOtro) : ''}
-    ${field('Declaración origen lícito', data.declaraOrigenLicito === 'si' ? '✅ Aceptada' : '❌ No aceptada', true)}
+    ${field('Declaración origen lícito', data.declaraOrigenLicito === 'si' ? '✅ Aceptada' : '❌ No aceptada')}
   `;
 
   let financiamientoRows = `
     ${field('Forma de pago', data.formaPago)}
     ${field('Requiere financiamiento adicional', data.requiereFinanciamiento === 'si' ? 'Sí' : 'No')}
     ${data.requiereFinanciamiento === 'si' ? field('Fuente de financiamiento', data.fuenteFinanciamiento) : ''}
-    ${data.fuenteFinanciamiento === 'otro' ? field('Especificar fuente', data.fuenteFinanciamientoOtro) : ''}
+    ${data.fuenteFinanciamiento === 'otro' ? field('Especificar', data.fuenteFinanciamientoOtro) : ''}
     ${field('Tiene garantía hipotecaria', data.tieneGarantia === 'si' ? `Sí — ${data.tipoInmuebleGarantia || ''}, ${data.ciudadGarantia || ''}` : 'No')}
     ${field('Encaje en efectivo USD', data.encajeEfectivoUSD ? `$${data.encajeEfectivoUSD}` : '')}
     ${field('Encaje en efectivo Soles', data.encajeEfectivoSoles ? `S/ ${data.encajeEfectivoSoles}` : '')}
@@ -235,24 +202,24 @@ function buildAdminEmail(data: any, nombre: string): string {
   let declaracionRows = `
     ${field('Lugar y fecha', data.lugarFecha)}
     ${field('Nombre del solicitante', data.nombreSolicitante)}
-    ${field('Acepta términos', data.aceptaDeclaracion === 'si' ? '✅ Sí' : '❌ No', true)}
+    ${field('Acepta términos', data.aceptaDeclaracion === 'si' ? '✅ Sí' : '❌ No')}
   `;
 
   return `
     <!DOCTYPE html>
     <html>
-    <head><meta charset="UTF-8"></head>
-    <body style="margin:0; padding:0; background:#f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="max-width:680px; margin:0 auto; background:#ffffff; border-radius:24px; overflow:hidden; box-shadow:0 10px 25px -5px rgba(0,0,0,0.05);">
-        <div style="background:#0f172a; padding:28px 32px; text-align:center;">
-          <img src="${LOGO_URL}" alt="EGOA Capital" style="max-width:140px; margin-bottom:12px;" />
-          <h1 style="color:#ffffff; font-size:22px; margin:12px 0 0; font-weight:600;">Nueva solicitud de admisión</h1>
-          <p style="color:#94a3b8; margin:4px 0 0;">Revisión pendiente</p>
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="margin:0; padding:20px; background:#f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <div style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:28px; overflow:hidden; box-shadow:0 10px 25px -5px rgba(0,0,0,0.05);">
+        <div style="background:#0f172a; padding:24px 20px; text-align:center;">
+          <img src="${LOGO_URL}" alt="EGOA Capital" style="max-width:130px; margin-bottom:10px;" />
+          <h1 style="color:#ffffff; font-size:20px; margin:8px 0 0;">Nueva solicitud de admisión</h1>
+          <p style="color:#94a3b8; margin:4px 0 0; font-size:13px;">Revisión pendiente</p>
         </div>
-        <div style="padding:24px 32px 40px;">
-          <div style="background:#f0f9ff; border-left:4px solid #1e40af; border-radius:12px; padding:16px 20px; margin-bottom:32px;">
-            <p style="margin:0 0 4px; font-size:15px; font-weight:700; color:#1e3a8a;">${escapeHtml(nombre)}</p>
-            <p style="margin:0; font-size:13px; color:#2563eb;">${data.email || 'Sin email'}</p>
+        <div style="padding:20px 24px 32px;">
+          <div style="background:#f0f9ff; border-left:4px solid #1e40af; border-radius:12px; padding:14px 18px; margin-bottom:28px;">
+            <p style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">${escapeHtml(nombre)}</p>
+            <p style="margin:0; font-size:13px; color:#2563eb;">${data.email || 'No se proporcionó email'}</p>
           </div>
           ${section('📋 Datos personales', personalRows)}
           ${conyugeRows}
@@ -262,11 +229,11 @@ function buildAdminEmail(data: any, nombre: string): string {
           ${section('💰 Rango de inversión', inversionRows)}
           ${section('🏦 Financiamiento', financiamientoRows)}
           ${section('✍️ Declaración', declaracionRows)}
-          <div style="margin-top:32px; background:#fef9e3; border-radius:14px; padding:14px 18px; border:1px solid #fde68a;">
+          <div style="margin-top:32px; background:#fef9e3; border-radius:14px; padding:12px 16px; border:1px solid #fde68a;">
             <p style="margin:0; font-size:12px; color:#92400e;"><strong>📌 Estado:</strong> Pendiente de revisión · Recibida el ${new Date().toLocaleDateString('es-PE')}</p>
           </div>
         </div>
-        <div style="background:#f9fafb; padding:16px 32px; text-align:center; border-top:1px solid #e5e7eb;">
+        <div style="background:#f9fafb; padding:14px 20px; text-align:center; border-top:1px solid #e5e7eb;">
           <p style="margin:0; font-size:11px; color:#9ca3af;">EGOA Capital S.A.C. · RUC 20613300997 · operaciones@egoa.app</p>
         </div>
       </div>
@@ -279,24 +246,24 @@ function buildUserEmail(nombre: string): string {
   return `
     <!DOCTYPE html>
     <html>
-    <head><meta charset="UTF-8"></head>
-    <body style="margin:0; padding:0; background:#f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:24px; overflow:hidden; box-shadow:0 10px 25px -5px rgba(0,0,0,0.05);">
-        <div style="background:#0f172a; padding:28px 32px; text-align:center;">
-          <img src="${LOGO_URL}" alt="EGOA Capital" style="max-width:120px;" />
-          <h2 style="color:#fff; margin:16px 0 0; font-size:20px;">¡Tu solicitud ha sido recibida!</h2>
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="margin:0; padding:20px; background:#f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <div style="max-width:520px; margin:0 auto; background:#ffffff; border-radius:28px; overflow:hidden; box-shadow:0 10px 25px -5px rgba(0,0,0,0.05);">
+        <div style="background:#0f172a; padding:24px 20px; text-align:center;">
+          <img src="${LOGO_URL}" alt="EGOA Capital" style="max-width:110px;" />
+          <h2 style="color:#fff; margin:12px 0 0; font-size:20px;">¡Solicitud recibida!</h2>
         </div>
-        <div style="padding:32px;">
+        <div style="padding:24px 20px 32px;">
           <p style="font-size:16px; color:#111827;">Hola <strong>${escapeHtml(nombre.split(' ')[0])}</strong>,</p>
-          <p style="font-size:15px; color:#4b5563; line-height:1.5;">Gracias por confiar en <strong>EGOA Capital</strong>. Hemos recibido tu solicitud de admisión correctamente y nuestro equipo la revisará en un plazo de <strong>48 horas hábiles</strong>.</p>
-          <div style="background:#f0fdf4; border-radius:16px; padding:20px; margin:24px 0;">
-            <p style="margin:0 0 12px; font-size:13px; font-weight:700; color:#14532d;">📌 ¿Qué sigue?</p>
-            <p style="margin:0 0 8px; font-size:14px; color:#166534;">✅ Solicitud en cola de revisión</p>
-            <p style="margin:0 0 8px; font-size:14px; color:#166534;">🔍 Evaluación de perfil por el comité EGOA</p>
-            <p style="margin:0 0 8px; font-size:14px; color:#166534;">📧 Recibirás un correo con el resultado</p>
-            <p style="margin:0; font-size:14px; color:#166534;">🏠 Acceso completo a la plataforma (si eres aprobado)</p>
+          <p style="font-size:15px; color:#4b5563; line-height:1.5;">Gracias por confiar en <strong>EGOA Capital</strong>. Hemos recibido tu solicitud de admisión y nuestro equipo la revisará en <strong>48 horas hábiles</strong>.</p>
+          <div style="background:#f0fdf4; border-radius:16px; padding:16px; margin:24px 0;">
+            <p style="margin:0 0 8px; font-size:13px; font-weight:700; color:#14532d;">📌 ¿Qué sigue?</p>
+            <p style="margin:0 0 6px; font-size:14px; color:#166534;">✅ Solicitud en cola de revisión</p>
+            <p style="margin:0 0 6px; font-size:14px; color:#166534;">🔍 Evaluación de perfil por el comité EGOA</p>
+            <p style="margin:0 0 6px; font-size:14px; color:#166534;">📧 Recibirás un correo con el resultado</p>
+            <p style="margin:0; font-size:14px; color:#166534;">🏠 Acceso completo (si eres aprobado)</p>
           </div>
-          <p style="font-size:13px; color:#6b7280;">Si tienes alguna duda, responde a este correo o escríbenos a <a href="mailto:operaciones@egoa.app" style="color:#1e40af;">operaciones@egoa.app</a>.</p>
+          <p style="font-size:13px; color:#6b7280;">¿Dudas? Escríbenos a <a href="mailto:operaciones@egoa.app" style="color:#1e40af;">operaciones@egoa.app</a>.</p>
           <hr style="margin:24px 0; border:none; border-top:1px solid #e5e7eb;" />
           <p style="font-size:11px; color:#9ca3af; text-align:center;">EGOA Capital S.A.C. · RUC 20613300997</p>
         </div>
