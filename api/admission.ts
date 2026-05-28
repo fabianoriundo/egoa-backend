@@ -5,7 +5,7 @@ import nodemailer from 'nodemailer';
 
 const ADMIN_EMAIL = 'operaciones@egoa.app';
 const YOUR_EMAIL = 'ofabianmisael@gmail.com';
-const LOGO_URL = 'https://i.imgur.com/tu-logo.png'; // ← CÁMBIALA
+const LOGO_URL = 'https://egoa-backend-fabians-projects-4888a274.vercel.app/logo.png';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
