@@ -2,10 +2,134 @@
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
 import nodemailer from 'nodemailer';
+import PDFDocument from 'pdfkit';
 
 const ADMIN_EMAIL = 'operaciones@egoa.app';
 const YOUR_EMAIL = 'ofabianmisael@gmail.com';
 const LOGO_URL = 'https://egoa-backend-fabians-projects-4888a274.vercel.app/logo.png';
+
+// ─── Generar PDF con todos los datos ─────────────────────────────────────────
+function generateAdmissionPDF(data: any, nombre: string): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 40, size: 'A4' });
+    const buffers: Buffer[] = [];
+    doc.on('data', buffers.push.bind(buffers));
+    doc.on('end', () => resolve(Buffer.concat(buffers)));
+    doc.on('error', reject);
+
+    // Logo (opcional, si falla continúa)
+    try {
+      doc.image(LOGO_URL, 40, 30, { width: 80 });
+    } catch (e) {}
+
+    doc.fontSize(18).text('Solicitud de Admisión - EGOA Capital', 40, 100, { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(10).text(`Fecha: ${new Date().toLocaleDateString('es-PE')}`, 40, 130, { align: 'right' });
+    doc.moveDown(2);
+
+    // DATOS PERSONALES
+    doc.fontSize(12).font('Helvetica-Bold').text('DATOS PERSONALES', 40, 170);
+    doc.fontSize(10).font('Helvetica');
+    let y = 190;
+    const addLine = (label: string, value: any) => {
+      if (value) doc.text(`${label}: ${value}`, 40, y);
+      y += 15;
+    };
+    addLine('Nombre completo', data.nombre);
+    addLine('Fecha de nacimiento', data.fechaNacimiento);
+    addLine('DNI / Pasaporte', data.dni);
+    addLine('Nacionalidad', data.nacionalidad);
+    addLine('Dirección', data.direccion);
+    addLine('Ciudad', data.ciudad);
+    addLine('Celular', data.celular);
+    addLine('Estado civil', data.estadoCivil);
+    if (data.estadoCivil === 'casado') {
+      addLine('Cónyuge', data.conyugeNombre);
+      addLine('Fecha nacimiento cónyuge', data.conyugeFecha);
+      addLine('DNI cónyuge', data.conyugeDni);
+      addLine('Nacionalidad cónyuge', data.conyugeNacionalidad);
+      addLine('Sociedad de ganancias', data.sociedadGanancias);
+      addLine('Partida registral', data.partidaRegistral);
+    }
+    y += 5;
+
+    // ACTIVIDAD PROFESIONAL
+    doc.fontSize(12).font('Helvetica-Bold').text('ACTIVIDAD PROFESIONAL', 40, y);
+    y += 20;
+    doc.fontSize(10).font('Helvetica');
+    addLine('Ocupación', data.ocupacion);
+    addLine('Empresa', data.empresa);
+    addLine('Cargo', data.cargo);
+    addLine('Rubro', data.rubro);
+    addLine('Antigüedad', data.antiguedad);
+    addLine('Otra fuente de ingresos', data.otraFuente === 'si' ? `Sí - ${data.otraFuenteDetalle || ''}` : 'No');
+    y += 5;
+
+    // PERFIL ECONÓMICO
+    doc.fontSize(12).font('Helvetica-Bold').text('PERFIL ECONÓMICO', 40, y);
+    y += 20;
+    doc.fontSize(10).font('Helvetica');
+    addLine('Ingresos mensuales', data.rangoIngresos);
+    addLine('Patrimonio líquido', data.patrimonioLiquido);
+    addLine('Forma de inversión', data.formaInversion);
+    if (data.formaInversion === 'otro') addLine('Especificar', data.formaInversionOtro);
+    addLine('Propietario de inmueble', data.esPropietario === 'si' ? 'Sí' : 'No');
+    if (data.esPropietario === 'si') addLine('Tipo de inmuebles', data.tiposPropiedades?.join(', '));
+    addLine('¿Ha tenido segunda propiedad?', data.tieneSegundaPropiedad === 'si' ? `Sí - ${data.retoPrincipal || ''}` : 'No');
+    y += 5;
+
+    // INTERÉS EGOA
+    doc.fontSize(12).font('Helvetica-Bold').text('INTERÉS EN COPROPIEDAD', 40, y);
+    y += 20;
+    doc.fontSize(10).font('Helvetica');
+    addLine('Tipo de interés', data.tipoInteres?.join(', '));
+    if (data.tipoInteres?.includes('otro')) addLine('Otro tipo', data.tipoInteresOtro);
+    addLine('Frecuencia de uso', data.frecuenciaUso);
+    addLine('Prioridad de inversión', data.prioridadInversion?.join(', '));
+    if (data.prioridadInversion?.includes('otro')) addLine('Otra prioridad', data.prioridadOtro);
+    y += 5;
+
+    // RANGO DE INVERSIÓN
+    doc.fontSize(12).font('Helvetica-Bold').text('RANGO DE INVERSIÓN', 40, y);
+    y += 20;
+    doc.fontSize(10).font('Helvetica');
+    addLine('Rango a invertir', data.rangoInversionEgoa);
+    addLine('Horizonte de tiempo', data.horizonteTiempo);
+    addLine('Origen de fondos', data.origenFondos);
+    if (data.origenFondos === 'otro') addLine('Otro origen', data.origenFondosOtro);
+    addLine('Declaración origen lícito', data.declaraOrigenLicito === 'si' ? 'Aceptada' : 'No aceptada');
+    y += 5;
+
+    // FINANCIAMIENTO
+    doc.fontSize(12).font('Helvetica-Bold').text('COMPRA Y FINANCIAMIENTO', 40, y);
+    y += 20;
+    doc.fontSize(10).font('Helvetica');
+    addLine('Forma de pago', data.formaPago);
+    addLine('Requiere financiamiento adicional', data.requiereFinanciamiento === 'si' ? 'Sí' : 'No');
+    if (data.requiereFinanciamiento === 'si') {
+      addLine('Fuente de financiamiento', data.fuenteFinanciamiento);
+      if (data.fuenteFinanciamiento === 'otro') addLine('Especificar', data.fuenteFinanciamientoOtro);
+    }
+    addLine('Tiene garantía hipotecaria', data.tieneGarantia === 'si' ? `Sí - ${data.tipoInmuebleGarantia || ''}, ${data.ciudadGarantia || ''}` : 'No');
+    addLine('Encaje en efectivo USD', data.encajeEfectivoUSD ? `$${data.encajeEfectivoUSD}` : '');
+    addLine('Encaje en efectivo Soles', data.encajeEfectivoSoles ? `S/ ${data.encajeEfectivoSoles}` : '');
+    addLine('Porcentaje de encaje', data.porcentajeEncaje ? `${data.porcentajeEncaje}%` : '');
+    addLine('¿Es PEP?', data.esPEP === 'si' ? `Sí - ${data.pepDetalle || ''}` : 'No');
+    addLine('¿Cómo conoció EGOA?', data.comoConocioEgoa);
+    y += 5;
+
+    // DECLARACIÓN
+    doc.fontSize(12).font('Helvetica-Bold').text('DECLARACIÓN', 40, y);
+    y += 20;
+    doc.fontSize(10).font('Helvetica');
+    addLine('Lugar y fecha', data.lugarFecha);
+    addLine('Nombre del solicitante', data.nombreSolicitante);
+    addLine('Acepta términos', data.aceptaDeclaracion === 'si' ? 'Sí' : 'No');
+
+    doc.text('--- Fin del documento ---', 40, y + 30, { align: 'center' });
+    doc.end();
+  });
+}
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,7 +140,7 @@ export default async function handler(req: any, res: any) {
   const data = req.body;
 
   try {
-    // ── INSERT completo (todas las columnas) ─────────────────────────────────
+    // ── 1. Guardar en base de datos (INSERT completo) ─────────────────────────
     await db.execute(sql`
       INSERT INTO admissions (
         email, nombre, fecha_nacimiento, dni, nacionalidad, direccion, ciudad, celular,
@@ -63,7 +187,7 @@ export default async function handler(req: any, res: any) {
       )
     `);
 
-    // ── Configurar transporter ─────────────────────────────────────────────
+    // ── 2. Configurar transporter ─────────────────────────────────────────────
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || '587'),
@@ -74,24 +198,39 @@ export default async function handler(req: any, res: any) {
     const nombre = data.nombre || data.nombreSolicitante || 'Inversor';
     const userEmail = data.email;
 
-    // ── Correo al admin + BCC ──────────────────────────────────────────────
-    const adminHtml = buildAdminEmail(data, nombre);
+    // ── 3. Generar PDF ───────────────────────────────────────────────────────
+    const pdfBuffer = await generateAdmissionPDF(data, nombre);
+
+    // ── 4. Correo al administrador + BCC (mensaje breve + PDF adjunto) ───────
     await transporter.sendMail({
-      from: `"EGOA App" <${process.env.SMTP_USER}>`,
+      from: `"EGOA Capital" <${process.env.SMTP_USER}>`,
       to: ADMIN_EMAIL,
       bcc: YOUR_EMAIL,
-      subject: `Nueva solicitud de admisión — ${nombre}`,
-      html: adminHtml,
+      subject: `Nueva solicitud de admisión - ${nombre}`,
+      html: buildAdminShortEmail(nombre),
+      attachments: [
+        {
+          filename: `solicitud_${nombre.replace(/\s/g, '_')}.pdf`,
+          content: pdfBuffer,
+          contentType: 'application/pdf',
+        },
+      ],
     });
 
-    // ── Correo de confirmación al usuario ──────────────────────────────────
+    // ── 5. Correo al usuario (mensaje breve + PDF adjunto) ────────────────────
     if (userEmail && userEmail.includes('@')) {
-      const userHtml = buildUserEmail(nombre);
       await transporter.sendMail({
         from: `"EGOA Capital" <${process.env.SMTP_USER}>`,
         to: userEmail,
-        subject: '✅ Recibimos tu solicitud de admisión · EGOA',
-        html: userHtml,
+        subject: 'Tu solicitud de admisión ha sido recibida - EGOA',
+        html: buildUserShortEmail(nombre),
+        attachments: [
+          {
+            filename: `solicitud_${nombre.replace(/\s/g, '_')}.pdf`,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ],
       });
     }
 
@@ -102,133 +241,24 @@ export default async function handler(req: any, res: any) {
   }
 }
 
-// ── Funciones auxiliares para el correo ──────────────────────────────────────
-function field(label: string, value: any): string {
-  if (!value || value === '') return '';
-  const displayValue = Array.isArray(value) ? value.join(', ') : value;
-  return `
-    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eef2f6;">
-      <div style="font-weight: 600; color: #1f2937; width: 40%; font-size: 13px;">${escapeHtml(label)}</div>
-      <div style="color: #4b5563; width: 55%; font-size: 13px; word-break: break-word;">${escapeHtml(displayValue)}</div>
-    </div>
-  `;
-}
-
-function section(title: string, content: string): string {
-  return `
-    <div style="margin-bottom: 28px;">
-      <div style="display: flex; align-items: center; margin-bottom: 12px;">
-        <div style="background: #1e40af; width: 4px; height: 18px; border-radius: 2px; margin-right: 10px;"></div>
-        <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin: 0;">${title}</h3>
-      </div>
-      <div style="background: #f9fafb; border-radius: 12px; padding: 8px 16px;">${content}</div>
-    </div>
-  `;
-}
-
-function buildAdminEmail(data: any, nombre: string): string {
-  // Datos personales
-  let personalRows = `
-    ${field('Nombre completo', data.nombre)}
-    ${field('Fecha de nacimiento', data.fechaNacimiento)}
-    ${field('DNI / Pasaporte', data.dni)}
-    ${field('Nacionalidad', data.nacionalidad)}
-    ${field('Dirección', data.direccion)}
-    ${field('Ciudad', data.ciudad)}
-    ${field('Celular', data.celular)}
-    ${field('Estado civil', data.estadoCivil)}
-  `;
-
-  let conyugeRows = '';
-  if (data.estadoCivil === 'casado') {
-    conyugeRows = section('👫 Datos del cónyuge', `
-      ${field('Nombre', data.conyugeNombre)}
-      ${field('Fecha nacimiento', data.conyugeFecha)}
-      ${field('DNI', data.conyugeDni)}
-      ${field('Nacionalidad', data.conyugeNacionalidad)}
-      ${field('Sociedad de ganancias', data.sociedadGanancias)}
-      ${field('Partida registral', data.partidaRegistral)}
-    `);
-  }
-
-  let profesionalRows = `
-    ${field('Ocupación', data.ocupacion)}
-    ${field('Empresa', data.empresa)}
-    ${field('Cargo', data.cargo)}
-    ${field('Rubro', data.rubro)}
-    ${field('Antigüedad', data.antiguedad)}
-    ${field('Otra fuente de ingresos', data.otraFuente === 'si' ? `Sí — ${data.otraFuenteDetalle || ''}` : 'No')}
-  `;
-
-  let economicoRows = `
-    ${field('Ingresos mensuales', data.rangoIngresos)}
-    ${field('Patrimonio líquido', data.patrimonioLiquido)}
-    ${field('Forma de inversión', data.formaInversion)}
-    ${data.formaInversion === 'otro' ? field('Especificar', data.formaInversionOtro) : ''}
-    ${field('Propietario de inmueble', data.esPropietario === 'si' ? 'Sí' : 'No')}
-    ${data.esPropietario === 'si' ? field('Tipo de inmuebles', data.tiposPropiedades) : ''}
-    ${field('¿Ha tenido segunda propiedad?', data.tieneSegundaPropiedad === 'si' ? `Sí — ${data.retoPrincipal || ''}` : 'No')}
-  `;
-
-  let interesRows = `
-    ${field('Tipo de interés', data.tipoInteres)}
-    ${data.tipoInteres?.includes('otro') ? field('Otro tipo', data.tipoInteresOtro) : ''}
-    ${field('Frecuencia de uso', data.frecuenciaUso)}
-    ${field('Prioridad de inversión', data.prioridadInversion)}
-    ${data.prioridadInversion?.includes('otro') ? field('Otra prioridad', data.prioridadOtro) : ''}
-  `;
-
-  let inversionRows = `
-    ${field('Rango a invertir', data.rangoInversionEgoa)}
-    ${field('Horizonte de tiempo', data.horizonteTiempo)}
-    ${field('Origen de fondos', data.origenFondos)}
-    ${data.origenFondos === 'otro' ? field('Otro origen', data.origenFondosOtro) : ''}
-    ${field('Declaración origen lícito', data.declaraOrigenLicito === 'si' ? '✅ Aceptada' : '❌ No aceptada')}
-  `;
-
-  let financiamientoRows = `
-    ${field('Forma de pago', data.formaPago)}
-    ${field('Requiere financiamiento adicional', data.requiereFinanciamiento === 'si' ? 'Sí' : 'No')}
-    ${data.requiereFinanciamiento === 'si' ? field('Fuente de financiamiento', data.fuenteFinanciamiento) : ''}
-    ${data.fuenteFinanciamiento === 'otro' ? field('Especificar', data.fuenteFinanciamientoOtro) : ''}
-    ${field('Tiene garantía hipotecaria', data.tieneGarantia === 'si' ? `Sí — ${data.tipoInmuebleGarantia || ''}, ${data.ciudadGarantia || ''}` : 'No')}
-    ${field('Encaje en efectivo USD', data.encajeEfectivoUSD ? `$${data.encajeEfectivoUSD}` : '')}
-    ${field('Encaje en efectivo Soles', data.encajeEfectivoSoles ? `S/ ${data.encajeEfectivoSoles}` : '')}
-    ${field('Porcentaje de encaje', data.porcentajeEncaje ? `${data.porcentajeEncaje}%` : '')}
-    ${field('¿Es PEP?', data.esPEP === 'si' ? `Sí — ${data.pepDetalle || ''}` : 'No')}
-    ${field('¿Cómo conoció EGOA?', data.comoConocioEgoa)}
-  `;
-
-  let declaracionRows = `
-    ${field('Lugar y fecha', data.lugarFecha)}
-    ${field('Nombre del solicitante', data.nombreSolicitante)}
-    ${field('Acepta términos', data.aceptaDeclaracion === 'si' ? '✅ Sí' : '❌ No')}
-  `;
-
+// ─── Correo breve para el administrador ───────────────────────────────────────
+function buildAdminShortEmail(nombre: string): string {
   return `
     <!DOCTYPE html>
     <html>
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="margin:0; padding:20px; background:#f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:28px; overflow:hidden; box-shadow:0 10px 25px -5px rgba(0,0,0,0.05);">
+      <div style="max-width:500px; margin:0 auto; background:#ffffff; border-radius:28px; overflow:hidden; box-shadow:0 10px 25px -5px rgba(0,0,0,0.05);">
         <div style="background:#0f172a; padding:24px 20px; text-align:center;">
-          <img src="${LOGO_URL}" alt="EGOA Capital" style="max-width:130px; margin-bottom:10px;" />
+          <img src="${LOGO_URL}" alt="EGOA Capital" style="max-width:120px; margin-bottom:10px;" />
           <h1 style="color:#ffffff; font-size:20px; margin:8px 0 0;">Nueva solicitud de admisión</h1>
           <p style="color:#94a3b8; margin:4px 0 0; font-size:13px;">Revisión pendiente</p>
         </div>
         <div style="padding:20px 24px 32px;">
           <div style="background:#f0f9ff; border-left:4px solid #1e40af; border-radius:12px; padding:14px 18px; margin-bottom:28px;">
             <p style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">${escapeHtml(nombre)}</p>
-            <p style="margin:0; font-size:13px; color:#2563eb;">${data.email || 'No se proporcionó email'}</p>
+            <p style="margin:0; font-size:13px; color:#2563eb;">Adjunto encontrarás el PDF con toda la información.</p>
           </div>
-          ${section('📋 Datos personales', personalRows)}
-          ${conyugeRows}
-          ${section('💼 Actividad profesional', profesionalRows)}
-          ${section('📊 Perfil económico', economicoRows)}
-          ${section('🏡 Interés en copropiedad', interesRows)}
-          ${section('💰 Rango de inversión', inversionRows)}
-          ${section('🏦 Financiamiento', financiamientoRows)}
-          ${section('✍️ Declaración', declaracionRows)}
           <div style="margin-top:32px; background:#fef9e3; border-radius:14px; padding:12px 16px; border:1px solid #fde68a;">
             <p style="margin:0; font-size:12px; color:#92400e;"><strong>📌 Estado:</strong> Pendiente de revisión · Recibida el ${new Date().toLocaleDateString('es-PE')}</p>
           </div>
@@ -242,20 +272,22 @@ function buildAdminEmail(data: any, nombre: string): string {
   `;
 }
 
-function buildUserEmail(nombre: string): string {
+// ─── Correo breve para el usuario ─────────────────────────────────────────────
+function buildUserShortEmail(nombre: string): string {
   return `
     <!DOCTYPE html>
     <html>
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="margin:0; padding:20px; background:#f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="max-width:520px; margin:0 auto; background:#ffffff; border-radius:28px; overflow:hidden; box-shadow:0 10px 25px -5px rgba(0,0,0,0.05);">
+      <div style="max-width:500px; margin:0 auto; background:#ffffff; border-radius:28px; overflow:hidden; box-shadow:0 10px 25px -5px rgba(0,0,0,0.05);">
         <div style="background:#0f172a; padding:24px 20px; text-align:center;">
           <img src="${LOGO_URL}" alt="EGOA Capital" style="max-width:110px;" />
           <h2 style="color:#fff; margin:12px 0 0; font-size:20px;">¡Solicitud recibida!</h2>
         </div>
         <div style="padding:24px 20px 32px;">
           <p style="font-size:16px; color:#111827;">Hola <strong>${escapeHtml(nombre.split(' ')[0])}</strong>,</p>
-          <p style="font-size:15px; color:#4b5563; line-height:1.5;">Gracias por confiar en <strong>EGOA Capital</strong>. Hemos recibido tu solicitud de admisión y nuestro equipo la revisará en <strong>48 horas hábiles</strong>.</p>
+          <p style="font-size:15px; color:#4b5563; line-height:1.5;">Gracias por confiar en <strong>EGOA Capital</strong>.</p>
+          <p style="font-size:15px; color:#4b5563; line-height:1.5;">Adjunto encontrarás el PDF con un resumen de tu solicitud. Nuestro equipo evaluará tu perfil en las próximas <strong>48 horas hábiles</strong> y te notificaremos el resultado.</p>
           <div style="background:#f0fdf4; border-radius:16px; padding:16px; margin:24px 0;">
             <p style="margin:0 0 8px; font-size:13px; font-weight:700; color:#14532d;">📌 ¿Qué sigue?</p>
             <p style="margin:0 0 6px; font-size:14px; color:#166534;">✅ Solicitud en cola de revisión</p>

@@ -9,13 +9,15 @@
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "jsonwebtoken": "^9.0.3",
-    "nodemailer": "^8.0.9"
+    "nodemailer": "^8.0.9",
+    "pdfkit": "^0.18.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^25.9.1",
     "@types/nodemailer": "^8.0.0",
+    "@types/pdfkit": "^0.17.6",
     "drizzle-kit": "^0.31.10",
     "typescript": "^5.9.2"
   }
