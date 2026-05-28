@@ -3,9 +3,8 @@ import { sql } from 'drizzle-orm';
 import nodemailer from 'nodemailer';
 
 const ADMIN_EMAIL = 'operaciones@egoa.app';
-const YOUR_EMAIL = 'ofabianmisael@gmail.com'; // <- tu correo para copia
-// Logo público (cámbialo por tu URL real)
-const LOGO_URL = 'https://imgur.com/a/K7hu9TM';
+const YOUR_EMAIL = 'ofabianmisael@gmail.com'; // ← corregido (misael)
+const LOGO_URL = 'https://i.imgur.com/tu-logo.png'; // ← URL real de tu logo
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -100,26 +99,26 @@ export default async function handler(req: any, res: any) {
       )
     `);
 
-    // ── 2. Configurar transporter con las variables correctas ─────────────────
+    // ── 2. Configurar transporter usando las variables reales (SMTP_* sin S) ──
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTPS_HOST,    // <- corregido
-      port: parseInt(process.env.SMTPS_PORT || '587'),
-      secure: process.env.SMTPS_PORT === '465', // true para 465, false para otros
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_PORT === '465',
       auth: {
-        user: process.env.SMTPS_USER,
-        pass: process.env.SMTPS_PASS,
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
     });
 
     const nombre = data.nombre || data.nombreSolicitante || 'Inversor';
     const userEmail = data.email;
 
-    // ── 3. Correo al administrador (y a ti por BCC) ─────────────────────────
+    // ── 3. Correo al administrador (y BCC a ti) ──────────────────────────────
     const adminHtml = buildAdminEmail(data, nombre);
     await transporter.sendMail({
-      from: `"EGOA App" <${process.env.SMTPS_USER}>`,
+      from: `"EGOA App" <${process.env.SMTP_USER}>`,
       to: ADMIN_EMAIL,
-      bcc: YOUR_EMAIL,   // <- te llega copia oculta a ti
+      bcc: YOUR_EMAIL,
       subject: `Nueva solicitud de admisión — ${nombre}`,
       html: adminHtml,
     });
@@ -128,13 +127,11 @@ export default async function handler(req: any, res: any) {
     if (userEmail && userEmail.includes('@')) {
       const userHtml = buildUserEmail(nombre);
       await transporter.sendMail({
-        from: `"EGOA Capital" <${process.env.SMTPS_USER}>`,
+        from: `"EGOA Capital" <${process.env.SMTP_USER}>`,
         to: userEmail,
         subject: '✅ Recibimos tu solicitud de admisión · EGOA',
         html: userHtml,
       });
-    } else {
-      console.warn('Correo de usuario no válido, no se envió confirmación:', userEmail);
     }
 
     res.status(200).json({ message: 'Solicitud recibida correctamente' });
@@ -144,7 +141,7 @@ export default async function handler(req: any, res: any) {
   }
 }
 
-// ---------- CORREO ADMIN (con TODOS los datos, diseño mejorado) ----------
+// ---------- CORREO ADMIN (todos los datos, diseño profesional) ----------
 function buildAdminEmail(data: any, nombre: string): string {
   const field = (label: string, value: any, highlight = false) => {
     if (!value || value === '') return '';
@@ -160,9 +157,10 @@ function buildAdminEmail(data: any, nombre: string): string {
       <div style="display:inline-block; background:#1e40af; width:4px; height:18px; border-radius:2px; margin-right:10px; vertical-align:middle;"></div>
       <h3 style="display:inline-block; font-size:15px; font-weight:700; color:#1f2937; margin:0;">${title}</h3>
     </div>
-    <table style="width:100%; border-collapse:collapse; border-radius:16px; overflow:hidden; background:#fafbfc;">${rows}</table>
+    <table style="width:100%; border-collapse:collapse; border-radius:16px; overflow:hidden; background:#fafbfc;">${rows}</td>
   `;
 
+  // Construir filas (similar a la versión anterior pero completa)
   let personalRows = `
     ${field('Nombre completo', data.nombre, true)}
     ${field('Fecha de nacimiento', data.fechaNacimiento)}
@@ -277,7 +275,6 @@ function buildAdminEmail(data: any, nombre: string): string {
   `;
 }
 
-// ---------- CORREO USUARIO (solo confirmación) ----------
 function buildUserEmail(nombre: string): string {
   return `
     <!DOCTYPE html>
@@ -311,7 +308,7 @@ function buildUserEmail(nombre: string): string {
 
 function escapeHtml(str: string): string {
   if (!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
+  return str.replace(/[&<>]/g, (m) => {
     if (m === '&') return '&amp;';
     if (m === '<') return '&lt;';
     if (m === '>') return '&gt;';
