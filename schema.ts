@@ -1,5 +1,5 @@
 // api-backend/schema.ts
-import { pgTable, serial, text, timestamp, integer, real, boolean } from 'drizzle-orm/pg-core';  // ← agrega boolean
+import { pgTable, serial, text, timestamp, integer, real, boolean } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -31,12 +31,12 @@ export const properties = pgTable('properties', {
   badge: text('badge'),
   status: text('status').notNull().default('disponible'),
   createdAt: timestamp('created_at').defaultNow(),
-
-  // ← estos son los que faltaban:
   tipo: text('tipo').default('playa'),
   categoria: text('categoria').default('vacacional'),
   estilo: text('estilo').default('moderno'),
   modelo: text('modelo'),
   financiamiento: boolean('financiamiento').default(false),
   petFriendly: boolean('pet_friendly').default(false),
+  // ← Campo de imágenes S3
+  images: text('images').array(),
 });
