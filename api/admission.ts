@@ -289,7 +289,7 @@ function buildAdminEmail(data: any, nombre: string): string {
 
       <!-- HEADER -->
       <div style="background:#0F172A;padding:28px 24px;border-radius:16px 16px 0 0;text-align:center">
-        <img src="${LOGO_URL}" alt="EGOA" style="max-height:48px;margin-bottom:14px" onerror="this.style.display='none'"/>
+        <img src="${LOGO_URL}" alt="EGOA" style="max-height:70px;margin-bottom:14px" onerror="this.style.display='none'"/>
         <h1 style="color:#fff;margin:0;font-size:20px;font-weight:700">Nueva solicitud de admisión</h1>
         <p style="color:#94A3B8;margin:6px 0 0;font-size:13px">Pendiente de revisión por el equipo EGOA</p>
       </div>
@@ -408,7 +408,7 @@ function buildUserEmail(nombre: string, email: string): string {
     <div style="max-width:540px;margin:0 auto">
 
       <div style="background:#0F172A;padding:28px 24px;border-radius:16px 16px 0 0;text-align:center">
-        <img src="${LOGO_URL}" alt="EGOA" style="max-height:48px;margin-bottom:14px" onerror="this.style.display='none'"/>
+        <img src="${LOGO_URL}" alt="EGOA" style="max-height:70px;margin-bottom:14px" onerror="this.style.display='none'"/>
         <h1 style="color:#fff;margin:0;font-size:20px">¡Solicitud recibida!</h1>
         <p style="color:#94A3B8;margin:6px 0 0;font-size:13px">EGOA Capital · Proceso de admisión</p>
       </div>
