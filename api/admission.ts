@@ -8,7 +8,7 @@ import PDFDocument from 'pdfkit';
 
 const ADMIN_EMAIL  = 'operaciones@egoa.app';
 const YOUR_EMAIL   = 'ofabianmisael@gmail.com';
-const LOGO_URL     = 'https://egoa-backend-fabians-projects-4888a274.vercel.app/logo.png';
+const LOGO_URL     = 'https://egoa-backend-fabians-projects-4888a274.vercel.app/eGOa_logo.png';
 
 // ─── Traducciones de valores clave ────────────────────────────────────────────
 const T: Record<string, Record<string, string>> = {
