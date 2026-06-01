@@ -1,7 +1,7 @@
 // api-backend/schema.ts — completo con tabla invites agregada
 import {
   pgTable, pgEnum,
-  serial, text, timestamp, integer, real, boolean,
+  serial, text, timestamp, integer, real, boolean,jsonb,
 } from 'drizzle-orm/pg-core';
 
 // ── Tabla existente: users ────────────────────────────────────────────────────
@@ -43,6 +43,8 @@ export const properties = pgTable('properties', {
   financiamiento:    boolean('financiamiento').default(false),
   petFriendly:       boolean('pet_friendly').default(false),
   images:            text('images').array(),
+  lat:               real('lat'),
+  lng:               real('lng'),
 });
 
 // ── NUEVO: enum + tabla invites ───────────────────────────────────────────────
@@ -63,3 +65,79 @@ export const invites = pgTable('invites', {
   createdAt:    timestamp('created_at').defaultNow().notNull(),
   updatedAt:    timestamp('updated_at').defaultNow().notNull(),
 });
+
+export const sellEvaluations = pgTable('sell_evaluations', {
+  id:                 serial('id').primaryKey(),
+  createdAt:          timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+
+  // 1. Datos del propietario
+  nombre:             text('nombre').notNull().default(''),
+  celular:            text('celular').notNull().default(''),
+  correo:             text('correo').notNull().default(''),
+  emailAuth:          text('email_auth'),
+  tipoPropiedad:      text('tipo_propiedad').notNull().default(''),
+  quienDecide:        text('quien_decide').notNull().default(''),
+
+  // 2. Información de la propiedad
+  ubicacionZona:      text('ubicacion_zona').notNull().default(''),
+  ubicacionDetalle:   text('ubicacion_detalle').notNull().default(''),
+  tipoInmueble:       text('tipo_inmueble').notNull().default(''),
+  areaTerreno:        text('area_terreno').notNull().default(''),
+  areaConstruida:     text('area_construida').notNull().default(''),
+  dormitorios:        text('dormitorios').notNull().default(''),
+  caracteristicas:    jsonb('caracteristicas').notNull().default([]),
+
+  // 3. Estado legal
+  inscritaRegistros:  text('inscrita_registros').notNull().default(''),
+  tieneCargas:        text('tiene_cargas').notNull().default(''),
+  documentosOrden:    text('documentos_orden').notNull().default(''),
+  estadoOcupacion:    text('estado_ocupacion').notNull().default(''),
+  tieneMaterial:      jsonb('tiene_material').notNull().default([]),
+
+  // 4. Intención de venta
+  opcionVenta:        text('opcion_venta').notNull().default(''),
+  porcentajeConservar: text('porcentaje_conservar').notNull().default(''),
+  motivoVenta:        jsonb('motivo_venta').notNull().default([]),
+  plazoVenta:         text('plazo_venta').notNull().default(''),
+  valorEstimado:      text('valor_estimado').notNull().default(''),
+  aceptaTasacion:     text('acepta_tasacion').notNull().default(''),
+
+  // 5. Uso posterior
+  seguirUsando:       text('seguir_usando').notNull().default(''),
+  diasUso:            text('dias_uso').notNull().default(''),
+  compartirUso:       text('compartir_uso').notNull().default(''),
+  importanteConservar: text('importante_conservar').notNull().default(''),
+
+  // 6. Impacto social
+  importanciaImpacto: text('importancia_impacto').notNull().default(''),
+  contribuirVivienda: text('contribuir_vivienda').notNull().default(''),
+  tipoCausa:          text('tipo_causa').notNull().default(''),
+  aceptarHistoria:    text('aceptar_historia').notNull().default(''),
+
+  // 7. Expectativas
+  expectativas:       jsonb('expectativas').notNull().default([]),
+  preocupaciones:     text('preocupaciones').notNull().default(''),
+  firmarAcuerdo:      text('firmar_acuerdo').notNull().default(''),
+  contactoAsesor:     text('contacto_asesor').notNull().default(''),
+
+  // Clasificación interna
+  leadScore:          text('lead_score').notNull().default('C'),
+});
+
+export type SellEvaluationInsert = typeof sellEvaluations.$inferInsert;
+export type SellEvaluationSelect = typeof sellEvaluations.$inferSelect;
+
+export const propertyPois = pgTable('property_pois', {
+  id:          serial('id').primaryKey(),
+  propertyId:  integer('property_id').notNull().references(() => properties.id, { onDelete: 'cascade' }),
+  name:        text('name').notNull(),
+  categoria:   text('categoria').notNull(),
+  emoji:       text('emoji').notNull(),
+  lat:         real('lat').notNull(),
+  lng:         real('lng').notNull(),
+  distanciaM:  integer('distancia_m'),
+  descripcion: text('descripcion'),
+  createdAt:   timestamp('created_at').defaultNow(),
+});
+ 
+export type PoiSelect = typeof propertyPois.$inferSelect;
